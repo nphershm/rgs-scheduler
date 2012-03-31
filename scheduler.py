@@ -15,10 +15,13 @@ def get_students(from_grades=[]):
     students = []
 
     f = open('student_placement.csv')
+    c = 0
     for line in f:
         #print line
-        if not re.match(',,,',line) or line in os.linesep:
-            a = line.split(',')
+        c += 1
+        #TODO: don't parse line 1...
+        if (not re.match(',,,',line) or line in os.linesep) and not c == 1:
+            a = line.split(DELIMITER) #OO Calc uses ";" instead of "," in csv... ugh!
             #print a
             last = a[0]
             first = a[1]
@@ -27,6 +30,10 @@ def get_students(from_grades=[]):
             homeroom = a[4]
             math_level=''
             if len(a)>5: math_level=a[5].rstrip()
+            if not math_level in MATH_COURSES:
+                print 'Error importing student data for:',first,last
+                print 'Math level:',math_level,'does not match',MATH_COURSES
+                raise Exception
             s = Student(first, last, gender, grade, homeroom, math_level)
             if grade in from_grades or len(from_grades)==0:
                 students.append(s)
@@ -139,7 +146,22 @@ def schedule_one_v2(s, courses = [], startwith=[]):
         while j not in s.subjects_enrolled:
             if not opt:
                 s.clear_schedule()
-                startwith = [random.choice(o)]
+                """
+                [TODO]
+                There is a bug on the next line... for Brian Gentry
+                o is Null so random.choice(o) throws exception...
+                """
+                try:
+                    startwith = [random.choice(o)]
+                except:
+                    print 'Exception!',s.first,s.last,s.math_level,j
+                    print s.schedule
+                    print s.subjects_enrolled
+                    print 'my_c:'
+                    for m in my_c: print m
+                    print 'o:',o
+                    print 'opt:',opt
+                    
                 return schedule_one_v2(s, courses, startwith)
             if random.choice([True, False]):
                 choice = random.choice(opt)
@@ -149,12 +171,13 @@ def schedule_one_v2(s, courses = [], startwith=[]):
             opt.remove(choice)
     return s
 
+#Hard-coded to work for this years schedule
 def write_schedule(s, c, fname=''):
     if not fname: fname = 'schedule-version-'+str(time.time())
     f = open(fname+'-s'+'.csv','w')
     f.write('%s, %s, %s, %s, %s, %s, %s, %s, %s\n' % ('first','last','grade','gender','p1','p2','p3','p5','p6'))
     for i in s:
-        f.write('%s, %s, %s, %s, %s, %s, %s, %s, %s\n' % (i.first, i.last, i.grade, i.gender, i.schedule[1].teacher.last, i.schedule[2].teacher.last, i.schedule[3].teacher.last, i.schedule[5].teacher.last, i.schedule[6].teacher.last))
+        f.write('%s, %s, %s, %s, %s, %sNes, Mishri, Isabel, %s, %s, %s\n' % (i.first, i.last, i.grade, i.gender, i.schedule[1].teacher.last, i.schedule[2].teacher.last, i.schedule[3].teacher.last, i.schedule[5].teacher.last, i.schedule[6].teacher.last))
 
     f.close()
     f = open(fname+'-c'+'.csv','w')
@@ -167,9 +190,9 @@ def write_schedule(s, c, fname=''):
     f.close()
     print 'Schedule saved to',fname
 
-def schedule():            
-    s = get_students([7,8])
-    c = get_courses()
+def schedule(s=[], c=[]):
+    if not s: s = get_students([7,8])
+    if not c: c = get_courses()
     c = sorted(c, key=lambda c:(c.teacher, c.period))
     print 'scheduling!!!'
     attempts = 0

@@ -5,6 +5,8 @@
 BOY = 'b'
 GIRL = 'g'
 
+DELIMITER = ',' #Delimiter used in csv
+
 SS = 'Social Studies'
 SCI = 'Science'
 MATH = 'Math'
@@ -12,19 +14,21 @@ LA = 'Language Arts'
 SP = 'Spanish'
 E = 'Elective'
 
-SUBJECTS=[SS, SCI, MATH, LA, SP] #The subjects to schedule
+SUBJECTS=[ SS, SCI, MATH, LA, SP ] #The subjects to schedule
 
+#Teachers ['last','first',subject]
 TEACHERS = [
-    ['Hershman','Nick',MATH],
-    ['Robinson','Jeff',SS],
-    ['Leve','Jill',SCI],
-    ['Dawes','Angela',SP],
-    ['Mandis','Bill',LA],
-    ['Reece','Larissa',MATH],
-    ['Black','Brian',LA],
-    ['Nebert','Dietrich',SCI]
+    [ 'Hershman', 'Nick', MATH ],
+    [ 'Robinson', 'Jeff' ,SS ],
+    [ 'Leve', 'Jill', SCI ],
+    [ 'Dawes', 'Angela', SP ],
+    [ 'Mandis', 'Bill', LA ],
+    [ 'Reece', 'Larissa', MATH ],
+    [ 'Black', 'Brian', LA ],
+    [ 'Nebert', 'Dietrich', SCI ]
     ]
 
+#Math courses must match math levels in the students csv input file.
 MATH_COURSES = [
     'pre-algebra',
     'algebra',
@@ -97,7 +101,8 @@ class Student(object):
         match = []
         for i in courses:
             if subject == i.subject and self.grade in i.for_grades: match.append(i)
-            if subject == MATH and i.subject == self.math_level: match.append(i)
+            if subject == MATH:
+                if i.subject == self.math_level: match.append(i)
         return match
 
     def add_course(self,course,):
@@ -228,6 +233,3 @@ class Teacher(object):
 
     def __str__(self):
         return '%s %s' % (self.first, self.last)
-
-##    def __repr__(self):
-##        return self.__str__()
